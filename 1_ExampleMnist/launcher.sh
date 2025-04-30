@@ -1,20 +1,32 @@
 #!/bin/bash -l
-source ../EnvTrainingScynergyPy311/bin/activate
+cd ..
+source ActivateTheVenv.sh
+cd - 
 
-run_options="--epochs=3 --batchsize=128 --nworkers=4 "
-script="quick_inefficient_profiled.py"
+####################################################################################
+#Here you can change the profiler you want to test or choose to run the code without profiling 
+#You can also pick the "optimized" and not optimized version of the code 
+#Alos, we left two important parameters you can play with which are the number of workers that will be involved in the dataloader as well as the batch sizeo
+#Experiment the impact of these parameters on the CPU and GPU utilization
 
+# choose between PROFILER=torch   or PROFILER=py-spy   or PROFILER=cprofile or Profile r=NoProfiler 
 PROFILER="NoProfiler"
 OPTIMIZED=true
+# Parameters you can play with
+BATCHSIZE=128
+NWORKERS=4
+####################################################################################
 
-# e.g. export PROFILER=torch   or PROFILER=py-spy   or PROFILER=cprofile
+run_options="--epochs=3 "
+script="quick_inefficient_profiled.py"
+
 PROFILER=${PROFILER:-torch}   # default to "torch" if unset
 OPTIMIZED=${OPTIMIZED:-false} # default to false
 
 # OPTION: add "--optimized" if requested
 if [ "$OPTIMIZED" = "true" ]; then
-    run_options="${run_options} --optimized --nworkers=64"
-    srun_options="-n1 -c64"
+    run_options="${run_options} --optimized --nworkers=${NWORKERS} --batchsize=${BATCHSIZE}"
+    srun_options="-n1 -c ${NWORKERS}"
 else
     srun_options="-n1 -c1"
 fi
